@@ -1,0 +1,37 @@
+# Secretos y configuracion local
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+db.sqlite3
+staticfiles/
+
+# Node (web y mobile)
+node_modules/
+dist/
+build/
+.expo/
+.expo-shared/
+*.log
+
+# Moviles
+*.apk
+*.aab
+*.ipa
+ios/Pods/
+android/.gradle/
+android/app/build/
+
+# Editores y sistema
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

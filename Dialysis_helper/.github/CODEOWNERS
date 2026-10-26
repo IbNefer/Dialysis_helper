@@ -1,0 +1,6 @@
+# Cambia los usuarios por los de GitHub de cada integrante.
+# Cada carpeta tiene un dueno, pero la revision la hace otro integrante.
+/backend/ @usuario-backend
+/web/     @usuario-web
+/mobile/  @usuario-movil
+/docs/    @usuario-backend @usuario-web @usuario-movil

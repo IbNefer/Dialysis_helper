@@ -1,0 +1,30 @@
+openapi: 3.0.3
+info:
+  title: DP-Hogar API
+  version: 0.1.0
+  description: API de la plataforma de seguimiento de dialisis peritoneal domiciliaria.
+paths:
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      description: Comprueba que el backend esta arriba. No requiere sesion.
+      tags:
+      - sistema
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+          description: ''
+components:
+  schemas:
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+      - status

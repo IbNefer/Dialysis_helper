@@ -1,0 +1,6 @@
+# Evita conflictos de finales de linea entre Windows, Mac y Linux
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.zip binary
