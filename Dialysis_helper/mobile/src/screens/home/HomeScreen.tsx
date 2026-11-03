@@ -73,17 +73,15 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'HomeTab'>) {
           accessibilityLabel={`Intercambios de hoy: ${exchangesDone} de ${exchangesTotal}`}
         />
         <View style={styles.summaryBottom}>
-          <View accessible style={styles.next}>
+          <View accessible>
             <AppText color="textMuted">Próximo intercambio</AppText>
             <AppText variant="heading">{nextExchange}</AppText>
           </View>
           <Button
             label="Registrar ahora"
-            fullWidth={false}
             onPress={() =>
               navigation.navigate('RegisterTab', { screen: 'DialysisSession', initial: false })
             }
-            style={styles.registerNow}
           />
         </View>
       </GlassCard>
@@ -155,15 +153,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xxs + 2,
   },
-  summaryBottom: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  next: { flexGrow: 1 },
-  registerNow: { flexGrow: 1 },
+  // En columna: con fuente grande una fila que salta de línea deforma el botón.
+  summaryBottom: { gap: spacing.md },
   chartCard: { gap: spacing.lg },
   chartHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   link: { minHeight: sizes.touchTarget, justifyContent: 'center' },

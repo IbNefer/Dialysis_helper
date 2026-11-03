@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import {
   Button,
   GlassCard,
+  Grid,
   InlineNotice,
   NumberField,
   OfflineHint,
@@ -66,7 +67,7 @@ export function VitalsScreen({ navigation }: RegisterScreenProps<'Vitals'>) {
           outOfRange={isOutOfRange(weight, demoVitalRanges.weight)}
           testID="field-weight"
         />
-        <View style={styles.row}>
+        <Grid>
           <NumberField
             label="Presión alta"
             unit="mmHg"
@@ -85,7 +86,7 @@ export function VitalsScreen({ navigation }: RegisterScreenProps<'Vitals'>) {
             showNotice={false}
             testID="field-diastolic"
           />
-        </View>
+        </Grid>
         {(systolicOut || diastolicOut) && (
           <InlineNotice
             variant="attention"
@@ -120,5 +121,4 @@ export function VitalsScreen({ navigation }: RegisterScreenProps<'Vitals'>) {
 
 const styles = StyleSheet.create({
   form: { gap: spacing.lg },
-  row: { flexDirection: 'row', gap: spacing.sm },
 });
