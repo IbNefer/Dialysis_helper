@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { Platform, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
 import { colors, radii, sizes, spacing, typography } from '@/theme';
 import { spokenUnit } from '@/utils/units';
@@ -108,5 +108,8 @@ const styles = StyleSheet.create({
     minWidth: 0,
     color: colors.text,
     paddingVertical: spacing.sm,
+    // En web el navegador dibuja su propio contorno; el foco ya lo indica el borde de la caja.
+    // ('solid' con ancho 0: con el estilo 'auto' Chrome dibuja el anillo aunque el ancho sea 0).
+    ...Platform.select({ web: { outlineStyle: 'solid' as const, outlineWidth: 0 } }),
   },
 });

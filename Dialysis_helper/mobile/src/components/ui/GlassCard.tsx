@@ -25,7 +25,7 @@ export type GlassCardProps = ViewProps & {
   children?: ReactNode;
   tone?: GlassTone;
   radius?: number;
-  /** Relleno interno; 0 para manejarlo desde fuera. */
+  /** Relleno interno; 0 para manejarlo desde fuera. Usa esta prop, no `padding` en contentStyle. */
   padding?: number;
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
@@ -46,6 +46,8 @@ export function GlassCard({
 }: GlassCardProps) {
   const toneStyle = tones[tone];
   const blur = shouldUseBlur();
+  // Las capas llevan su propio radio: en web el backdrop-filter no respeta el overflow del padre.
+  const layer = [StyleSheet.absoluteFill, { borderRadius: radius }];
 
   return (
     <View
@@ -57,16 +59,16 @@ export function GlassCard({
           intensity={glass.blurIntensity}
           tint={glass.tint}
           blurMethod={Platform.OS === 'android' ? glass.androidBlurMethod : undefined}
-          style={StyleSheet.absoluteFill}
+          style={layer}
         />
       ) : (
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: glass.androidFallback }]} />
+        <View style={[layer, { backgroundColor: glass.androidFallback }]} />
       )}
-      <View
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { backgroundColor: toneStyle.backgroundColor }]}
-      />
-      <View style={[{ padding }, contentStyle]}>{children}</View>
+      <View pointerEvents="none" style={[layer, { backgroundColor: toneStyle.backgroundColor }]} />
+      {/* Longhands para que contentStyle pueda sobrescribirlos igual en nativo y en web. */}
+      <View style={[{ paddingHorizontal: padding, paddingVertical: padding }, contentStyle]}>
+        {children}
+      </View>
     </View>
   );
 }

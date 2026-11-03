@@ -27,7 +27,11 @@ export function ScreenHeader({ title, subtitle, onBack }: ScreenHeaderProps) {
         <AppText variant={onBack ? 'title' : 'display'} accessibilityRole="header">
           {title}
         </AppText>
-        {subtitle && <AppText color="textMuted">{subtitle}</AppText>}
+        {subtitle && (
+          <AppText variant={onBack ? 'body' : 'lead'} color="textMuted">
+            {subtitle}
+          </AppText>
+        )}
       </View>
     </View>
   );

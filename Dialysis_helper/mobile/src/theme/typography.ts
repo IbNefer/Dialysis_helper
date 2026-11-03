@@ -20,6 +20,7 @@ export const typography = {
   stat: { fontFamily: fontFamily.extrabold, fontSize: 30, lineHeight: 36 },
   statUnit: { fontFamily: fontFamily.semibold, fontSize: 17, lineHeight: 22 },
   bodyLg: { fontFamily: fontFamily.bold, fontSize: 19, lineHeight: 25 },
+  lead: { fontFamily: fontFamily.regular, fontSize: 19, lineHeight: 26 },
   body: { fontFamily: fontFamily.medium, fontSize: 17, lineHeight: 24 },
   label: { fontFamily: fontFamily.semibold, fontSize: 17, lineHeight: 22 },
   button: { fontFamily: fontFamily.extrabold, fontSize: 18, lineHeight: 24 },

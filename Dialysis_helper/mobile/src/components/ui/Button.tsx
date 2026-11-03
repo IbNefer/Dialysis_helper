@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     minHeight: sizes.buttonHeight,
     borderRadius: radii.pill,
     justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   glass: { flexGrow: 1 },

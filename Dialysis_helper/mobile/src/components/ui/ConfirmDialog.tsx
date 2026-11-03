@@ -43,7 +43,12 @@ export function ConfirmDialog({
           accessibilityRole="button"
           accessibilityLabel={cancelLabel}
         />
-        <GlassCard style={styles.card} contentStyle={styles.content} accessibilityViewIsModal>
+        <GlassCard
+          style={styles.card}
+          padding={spacing.xl}
+          contentStyle={styles.content}
+          accessibilityViewIsModal
+        >
           <AppText variant="heading" accessibilityRole="header">
             {title}
           </AppText>
@@ -76,6 +81,6 @@ const styles = StyleSheet.create({
     padding: spacing.screen,
   },
   card: { width: '100%', maxWidth: 480, alignSelf: 'center' },
-  content: { gap: spacing.md, padding: spacing.xl },
+  content: { gap: spacing.md },
   actions: { gap: spacing.sm, marginTop: spacing.xs },
 });
