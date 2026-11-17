@@ -2,11 +2,11 @@
 
 App para pacientes de diálisis peritoneal en casa y sus cuidadores (React Native + Expo, iOS y Android).
 
-> **Estado (BASE-MOV):** proyecto base, navegación, sistema de diseño y pantallas maquetadas con **datos ficticios**. Todavía no hay lógica de módulos (M1–M12) ni conexión con el backend.
+> **Estado:** proyecto base (BASE-MOV) + acceso completo: **login por credenciales (MOV-RF-003)**, **activación por invitación (MOV-RF-001)**, **consentimiento informado (MOV-RF-002)** y **generador de pacientes sintéticos (SIS-RF-019)**. El backend todavía no tiene esos endpoints: la app usa un **backend simulado** detrás de interfaces (ver [Backend simulado](#backend-simulado-y-endpoints-pendientes)).
 
-| Login                                  | Inicio                                   | Registrar                                      | Signos vitales                                           | Alertas                                    |
-| -------------------------------------- | ---------------------------------------- | ---------------------------------------------- | -------------------------------------------------------- | ------------------------------------------ |
-| ![Login](docs/screenshots/1-login.jpg) | ![Inicio](docs/screenshots/2-inicio.jpg) | ![Registrar](docs/screenshots/3-registrar.jpg) | ![Signos vitales](docs/screenshots/4-signos-vitales.jpg) | ![Alertas](docs/screenshots/5-alertas.jpg) |
+| Login                                        | Inicio                                   | Registrar                                      | Signos vitales                                           | Alertas                                    |
+| -------------------------------------------- | ---------------------------------------- | ---------------------------------------------- | -------------------------------------------------------- | ------------------------------------------ |
+| ![Login](docs/screenshots/auth-01-login.jpg) | ![Inicio](docs/screenshots/2-inicio.jpg) | ![Registrar](docs/screenshots/3-registrar.jpg) | ![Signos vitales](docs/screenshots/4-signos-vitales.jpg) | ![Alertas](docs/screenshots/5-alertas.jpg) |
 
 ## Requisitos
 
@@ -34,13 +34,17 @@ npm start                    # abre Expo; escanea el QR con Expo Go
 | Teléfono físico    | `npm start`       | Escanea el QR. El teléfono y la computadora deben estar en la misma red. |
 | Navegador          | `npm run web`     | Útil para revisar el diseño rápido; la app está pensada para móvil.      |
 
-Para entrar, toca **Iniciar sesión**: la sesión es simulada y acepta cualquier dato.
+Para entrar usa **`maria@ejemplo.com` / `demo1234`** (o cualquier paciente de [Cuentas de prueba](#pacientes-sintéticos-sis-rf-019)). La primera vez en cada teléfono te pedirá aceptar el consentimiento.
+
+> Expo Go basta para todo (SecureStore y huella vienen incluidos). Face ID en iOS necesita una build de desarrollo (`npx expo run:ios`).
 
 ### Variables de entorno
 
-| Variable              | Para qué                            | Valor de ejemplo                                                                    |
-| --------------------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_API_URL` | URL del backend (todavía no se usa) | `http://localhost:8000` (simulador iOS) · `http://10.0.2.2:8000` (emulador Android) |
+| Variable                      | Para qué                                                | Valor de ejemplo                                                                    |
+| ----------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_API_URL`         | URL del backend (todavía no se usa)                     | `http://localhost:8000` (simulador iOS) · `http://10.0.2.2:8000` (emulador Android) |
+| `EXPO_PUBLIC_SYNTHETIC_SEED`  | Semilla de los pacientes sintéticos (solo desarrollo)   | `2026`                                                                              |
+| `EXPO_PUBLIC_SYNTHETIC_COUNT` | Cuántos pacientes sintéticos, incluida María (máx. 200) | `8`                                                                                 |
 
 `.env.local` es personal y no se sube a Git.
 
@@ -56,6 +60,7 @@ Para entrar, toca **Iniciar sesión**: la sesión es simulada y acepta cualquier
 | `npm test`                        | Pruebas con Jest y React Native Testing Library                 |
 | `npm run doctor`                  | `expo-doctor`: revisa dependencias y configuración              |
 | `npm run export`                  | Genera los bundles de producción (comprueba que la app compila) |
+| `npm run synthetic`               | Imprime pacientes sintéticos en JSON (ver SIS-RF-019)           |
 
 Antes de abrir un PR: `npm run typecheck && npm run lint && npm test && npm run doctor`.
 
@@ -71,18 +76,26 @@ mobile/
 │   ├── screens/             # una carpeta por módulo (auth, home, register, alerts, profile, dev)
 │   ├── components/ui/       # componentes base del sistema de diseño (+ __tests__)
 │   ├── theme/               # tokens: colores, tipografía, espaciado, vidrio
-│   ├── services/            # sesión simulada y configuración de la API
+│   ├── services/            # contratos (auth, invitaciones, consentimiento, pacientes), backend
+│   │                        #   simulado, almacenamiento seguro, biometría y sesión
 │   ├── constants/           # textos compartidos, módulos y datos ficticios
 │   ├── types/               # tipos compartidos
-│   └── utils/               # formato de números, rangos de ejemplo, contraste
+│   ├── utils/               # formato, rangos de ejemplo, contraste y validación de formularios
+│   ├── dev/synthetic/       # SOLO DESARROLLO: generador de pacientes sintéticos (SIS-RF-019)
+│   └── test-utils/          # renderApp y servicios en memoria para las pruebas
+├── scripts/                 # generate-synthetic.ts (npm run synthetic)
 └── docs/screenshots/        # capturas para el README y los PR
 ```
 
 ## Navegación
 
 ```
-RootNavigator ── sin sesión ──> AuthStack: Login (M1) · Registro por invitación (M1, placeholder)
-              └─ con sesión ──> MainTabs (barra flotante)
+RootNavigator ── abriendo ─────> "Abriendo DP-Hogar…" (lee el token guardado)
+              ├─ sin sesión ───> AuthStack: Login (MOV-RF-003)
+              │                    → Código de invitación → Datos y contraseña (MOV-RF-001)
+              │                    → Cuentas de prueba (solo __DEV__)
+              ├─ sin consentimiento ─> ConsentStack: Consentimiento (MOV-RF-002), sin salida a la app
+              └─ con sesión y consentimiento ─> MainTabs (barra flotante)
                                  ├─ Inicio (M7)
                                  ├─ Registrar ─ menú → Sesión de diálisis (M2) · Signos vitales y peso (M3)
                                  │                     · Líquidos y comidas (M4) · Síntomas (M6)
@@ -152,13 +165,77 @@ Plus Jakarta Sans (400–800). Una familia por peso, porque Android ignora `font
 
 ### Íconos
 
-Ionicons **rellenos** (`@expo/vector-icons`): `home`, `add-circle`, `notifications`, `person`, `water`, `heart`, `cafe`, `sad`, `call`, `warning`, `checkmark-circle`, `time`. Siempre van con texto al lado y se ocultan al lector de pantalla; solo `IconButton` va sin texto, y exige `accessibilityLabel`.
+Los SVG del prototipo están en `components/ui/glyphs.tsx` (react-native-svg) y se usan con el prefijo `dp-`: `dp-drop` (logo), `dp-face`, `dp-check`, `dp-tick`, `dp-warn`, `dp-clock`, `dp-back`, `dp-user`, `dp-phone`. El resto son Ionicons **rellenos** (`@expo/vector-icons`): `home`, `add-circle`, `notifications`, `person`, `water`, `heart`, `cafe`, `sad`, `call`, `warning`, `checkmark-circle`, `time`. Siempre van con texto al lado y se ocultan al lector de pantalla; solo `IconButton` va sin texto, y exige `accessibilityLabel`.
 
 ### Componentes (`components/ui`)
 
-`Screen`, `AmbientBackground`, `GlassCard`, `AppText`, `Button` (primary, secondary, danger, dangerSoft; con carga, deshabilitado e ícono), `IconButton`, `StatCard`, `ProgressBar`, `MenuTile`, `TextField`, `NumberField`, `InlineNotice` (info, attention, urgent, pending), `SeverityBadge`, `FilterChips`, `AlertCard`, `FloatingTabBar`, `EmptyState`, `LoadingView`, `ConfirmDialog`, `OfflineHint`, y los auxiliares `Avatar`, `AppLogo`, `ScreenHeader`, `ListItem`, `Grid` y `AccentGradient`.
+`Screen`, `AmbientBackground`, `GlassCard`, `AppText`, `Button` (primary, secondary, danger, dangerSoft; con carga, deshabilitado e ícono), `IconButton`, `StatCard`, `ProgressBar`, `MenuTile`, `TextField` (con `error`, `helperText` y accesorio), `PasswordField` (Mostrar/Ocultar), `RequirementList`, `Checkbox`, `Toast` (`useToast`), `NumberField`, `InlineNotice` (info, attention, urgent, pending), `SeverityBadge`, `FilterChips`, `AlertCard`, `FloatingTabBar`, `EmptyState`, `LoadingView`, `ConfirmDialog`, `OfflineHint`, y los auxiliares `Avatar`, `AppLogo`, `ScreenHeader`, `ListItem`, `Grid` y `AccentGradient`.
 
 En desarrollo, **Perfil → Catálogo de componentes** muestra todos los componentes con sus variantes.
+
+## Acceso: login, invitación y consentimiento
+
+| Login                                        | Validación                                                   | Credenciales incorrectas                                              | Consentimiento                                                 | Aceptar                                                         |
+| -------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------- |
+| ![Login](docs/screenshots/auth-01-login.jpg) | ![Validación](docs/screenshots/auth-02-login-validacion.jpg) | ![Error](docs/screenshots/auth-03-login-credenciales-incorrectas.jpg) | ![Consentimiento](docs/screenshots/auth-05-consentimiento.jpg) | ![Aceptar](docs/screenshots/auth-07-consentimiento-aceptar.jpg) |
+
+| Código inválido                                               | Código vencido                                              | Datos y contraseña                                      | Requisitos cumplidos                                              | Cuenta nueva                                                      |
+| ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![Inválido](docs/screenshots/auth-10-invitacion-invalido.jpg) | ![Vencido](docs/screenshots/auth-11-invitacion-vencido.jpg) | ![Datos](docs/screenshots/auth-13-invitacion-datos.jpg) | ![Requisitos](docs/screenshots/auth-15-invitacion-requisitos.jpg) | ![Inicio vacío](docs/screenshots/auth-16-inicio-cuenta-nueva.jpg) |
+
+**MOV-RF-003 · Login.** Valida el formato del correo y que la contraseña no esté vacía antes de llamar al servicio. Los errores aparecen bajo cada campo, se anuncian al lector de pantalla y el foco va al primer campo con error. Con credenciales incorrectas el mensaje es siempre el mismo, así no revela si el correo existe. El token se guarda en **expo-secure-store** (Keychain / Keystore) y la sesión se mantiene al reabrir la app. **Cerrar sesión** está en Perfil.
+
+**Face ID o huella.** Usa `expo-local-authentication`. Después de entrar una vez con contraseña, el teléfono recuerda la cuenta y el botón permite volver a entrar con biometría, también después de cerrar sesión. Si el teléfono no tiene huella ni Face ID configurados, la app lo explica. Pendiente con el backend: un refresh token propio y una opción en Ajustes para desactivarlo.
+
+**MOV-RF-001 · Invitación.** "Tengo una invitación de mi doctor" → código (con o sin guion, en mayúsculas o minúsculas) → datos que precargó el doctor, teléfono opcional y contraseña con **requisitos visibles** (8 caracteres, una letra, un número) y **confirmación**. Al terminar, la cuenta queda activada con la sesión abierta y pasa al consentimiento. Errores cubiertos: formato inválido, código no encontrado, **vencido** y **ya usado**.
+
+**MOV-RF-002 · Consentimiento.** El texto está versionado en `services/consent/consentDocument.ts` y es un **borrador** que debe aprobar el equipo de salud. La casilla se habilita **solo al llegar al final** del documento, y "Acepto" exige además marcarla. Se guarda `{ userId, version, acceptedAt (ISO, UTC), syncedAt: null }` **en el teléfono**, por usuario. Si sube la versión, se vuelve a pedir. Mientras no acepte, el navegador solo muestra esta pantalla. "No acepto" explica por qué no puede usar la app y cierra la sesión.
+
+### Datos de prueba
+
+| Qué                    | Valor                                                          |
+| ---------------------- | -------------------------------------------------------------- |
+| Paciente del prototipo | `maria@ejemplo.com` / `demo1234`                               |
+| Otros pacientes        | **Cuentas de prueba**, al pie del login (todas con `demo1234`) |
+| Invitación válida      | `DEMO-2026`                                                    |
+| Invitación vencida     | `VENC-2025`                                                    |
+| Invitación ya usada    | `USAD-2026`                                                    |
+| Código inexistente     | Cualquier otro, por ejemplo `ZZZZ-9999`                        |
+
+Al activar `DEMO-2026` el código queda usado. Para repetir la demo: **Cuentas de prueba → Reiniciar datos de demostración**. Borra las cuentas activadas, los códigos usados y los consentimientos de ese teléfono.
+
+## Pacientes sintéticos (SIS-RF-019)
+
+| Cuentas de prueba                                                 | Inicio de otro paciente                                 | Sus alertas                                               |
+| ----------------------------------------------------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
+| ![Cuentas de prueba](docs/screenshots/sint-01-cuentas-prueba.jpg) | ![Inicio](docs/screenshots/sint-02-inicio-paciente.jpg) | ![Alertas](docs/screenshots/sint-03-alertas-paciente.jpg) |
+
+`src/dev/synthetic/` genera pacientes **ficticios**: nombre, correo `@ejemplo.com`, edad, peso seco y de la semana, presión, temperatura, intercambios y balance, líquidos y límite del doctor, pendientes y alertas. Los valores siguen los rangos del prototipo y tres escenarios: estable, atención y urgente. Las alertas salen de los mismos rangos de ejemplo de la app (`utils/ranges.ts`) y nunca diagnostican. El primer paciente siempre es María, con los datos exactos del prototipo.
+
+- **Determinista:** la misma semilla da los mismos pacientes (PRNG mulberry32 propio). Si pides menos pacientes, obtienes el inicio de la misma lista.
+- **En la app (modo mock):** en desarrollo, el backend simulado se llena con `EXPO_PUBLIC_SYNTHETIC_SEED` y `EXPO_PUBLIC_SYNTHETIC_COUNT` (por defecto 2026 y 8). Inicio, Registrar y Alertas muestran los datos del paciente con sesión.
+- **Cuentas de prueba:** enlace al pie del login, solo con `__DEV__`. Toca una cuenta para llenar el login o un código para llenar la activación.
+- **Como JSON**, para demos o para sembrar el backend:
+
+    ```bash
+    npm run synthetic -- --seed 42 --count 10 --date 2026-11-17 > pacientes.json
+    npm run synthetic -- --no-demo   # sin María
+    ```
+
+    Corre con la eliminación de tipos de Node 22.18+ / 24, sin compilar ni dependencias. Por eso los archivos del generador importan con extensión `.ts`.
+
+- **Nunca en producción:** la app lo carga con `require` dentro de `if (__DEV__)` (`services/mock/devSeed.ts`) y Metro elimina esa rama al empaquetar. Comprobado con `npx expo export --platform android`: los nombres del catálogo y los códigos `DEMO-2026`, `VENC-2025` y `USAD-2026` están en el bundle de desarrollo y **no** en el de producción. La pantalla "Cuentas de prueba" tampoco se registra fuera de `__DEV__`.
+
+## Backend simulado y endpoints pendientes
+
+El backend hoy solo expone `/api/health/`. Cada servicio tiene una **interfaz** (`services/*/types.ts`) con el contrato propuesto y una implementación **mock** (`services/mock/mockBackend.ts`, `services/consent/localConsentService.ts`). Para conectar el backend real hay que crear las implementaciones HTTP y elegirlas en `services/index.ts`.
+
+| Servicio             | Contrato propuesto                                                                      | Hoy                                                               |
+| -------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `AuthService`        | `POST /api/auth/login/` · `GET /api/auth/me/` · `POST /api/auth/logout/`                | Mock, con token opaco `mock.<id>.<t>`                             |
+| `InvitationService`  | `POST /api/invitations/validate/` · `POST /api/invitations/activate/` (404 · 410 · 409) | Mock. Cuentas activadas y códigos usados persisten en SecureStore |
+| `ConsentService`     | `GET /api/consents/current/` · `POST /api/consents/`                                    | Solo en el teléfono (`syncedAt: null`)                            |
+| `PatientDataService` | Resumen del día (M7)                                                                    | Mock sincrónico con datos sintéticos                              |
 
 ## Accesibilidad
 
@@ -172,8 +249,12 @@ En desarrollo, **Perfil → Catálogo de componentes** muestra todos los compone
 | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | ![Inicio con fuente grande](docs/screenshots/android-fuente-grande-inicio.jpg) | ![Signos vitales con fuente grande](docs/screenshots/android-fuente-grande-signos-vitales.jpg) |
 
+| Login (1.5×)                                                                 | Activación por invitación (1.5×)                                                       |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| ![Login con fuente grande](docs/screenshots/android-fuente-grande-login.jpg) | ![Activación con fuente grande](docs/screenshots/android-fuente-grande-activacion.jpg) |
+
 ## Reglas
 
-- Solo datos ficticios (`src/constants/mockData.ts`). Nunca datos de pacientes reales.
+- Solo datos ficticios (`src/constants/`, `src/dev/synthetic/`). Nunca datos de pacientes reales.
 - Instala dependencias con `npx expo install` para obtener versiones compatibles con el SDK.
 - Los rangos de `utils/ranges.ts` son de **ejemplo** para la maqueta; los rangos reales los definirá el equipo de salud desde el backend.
