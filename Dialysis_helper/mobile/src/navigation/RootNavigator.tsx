@@ -1,18 +1,27 @@
 import { NavigationContainer } from '@react-navigation/native';
 
+import { LoadingView } from '@/components/ui';
 import { useSession } from '@/services/session/SessionContext';
 
 import { AuthStack } from './AuthStack';
+import { ConsentStack } from './ConsentStack';
 import { MainTabs } from './MainTabs';
 import { navigationTheme } from './navigationTheme';
 
-/** Muestra el flujo de acceso o la app principal según la sesión (simulada). */
+/**
+ * Elige el flujo según la sesión:
+ * sin sesión → acceso · con sesión sin consentimiento → consentimiento · con ambos → la app.
+ */
 export function RootNavigator() {
-  const { isSignedIn } = useSession();
+  const { status } = useSession();
+
+  if (status === 'restoring') return <LoadingView message="Abriendo DP-Hogar…" />;
 
   return (
     <NavigationContainer theme={navigationTheme}>
-      {isSignedIn ? <MainTabs /> : <AuthStack />}
+      {status === 'signedIn' && <MainTabs />}
+      {status === 'needsConsent' && <ConsentStack />}
+      {status === 'signedOut' && <AuthStack />}
     </NavigationContainer>
   );
 }

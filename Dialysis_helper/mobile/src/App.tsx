@@ -10,6 +10,7 @@ import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ToastProvider } from '@/components/ui';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { SessionProvider } from '@/services/session/SessionContext';
 import { colors } from '@/theme';
@@ -30,9 +31,11 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <SessionProvider>
-          <RootNavigator />
-        </SessionProvider>
+        <ToastProvider>
+          <SessionProvider>
+            <RootNavigator />
+          </SessionProvider>
+        </ToastProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

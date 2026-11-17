@@ -11,27 +11,31 @@ import {
   Screen,
   StatCard,
 } from '@/components/ui';
-import {
-  mockAlerts,
-  mockStats,
-  mockSummary,
-  mockToday,
-  mockWeightWeek,
-} from '@/constants/mockData';
+import { mockToday } from '@/constants/mockData';
 import type { MainTabScreenProps } from '@/navigation/types';
+import { usePatientDashboard } from '@/services/patients/usePatientDashboard';
 import { useSession } from '@/services/session/SessionContext';
 import { colors, radii, sizes, spacing } from '@/theme';
 
+import { homeViewModel } from './homeViewModel';
 import { WeightWeekChart } from './WeightWeekChart';
 
-/** M7 · Inicio. Maqueta con datos ficticios estáticos. */
+/** M7 · Inicio con el resumen del paciente con sesión (en desarrollo, datos sintéticos). */
 export function HomeScreen({ navigation }: MainTabScreenProps<'HomeTab'>) {
   const { user } = useSession();
-  const { exchangesDone, exchangesTotal, nextExchange } = mockSummary;
-  const progress = exchangesDone / exchangesTotal;
-  const percent = Math.round(progress * 100);
-  const unread = mockAlerts.some((alert) => !alert.read);
-  const { weight, pressure, balance, fluids } = mockStats;
+  const dashboard = usePatientDashboard();
+  const {
+    exchangesDone,
+    exchangesTotal,
+    nextExchange,
+    progress,
+    percent,
+    hasUnreadAlerts: unread,
+    weight,
+    pressure,
+    balance,
+    fluids,
+  } = homeViewModel(dashboard);
 
   return (
     <Screen testID="home-screen">
@@ -92,29 +96,31 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'HomeTab'>) {
           value={weight.value}
           unit={weight.unit}
           change={weight.change}
-          changeTone="positive"
-          accessibilityLabel={`Peso, ${weight.value} kilogramos, ${weight.change}`}
+          changeTone={weight.tone}
+          accessibilityLabel={weight.spoken}
         />
         <StatCard
           label="Presión"
           value={pressure.value}
-          change={pressure.note}
-          accessibilityLabel={`Presión, ${pressure.systolic} sobre ${pressure.diastolic} milímetros de mercurio, 8:10 a. m.`}
+          change={pressure.change}
+          changeTone={pressure.tone}
+          accessibilityLabel={pressure.spoken}
         />
         <StatCard
           label="Balance"
           value={balance.value}
           unit={balance.unit}
-          change={balance.note}
-          accessibilityLabel={`Balance, más 450 mililitros, ${balance.note}`}
+          change={balance.change}
+          changeTone={balance.tone}
+          accessibilityLabel={balance.spoken}
         />
         <StatCard
           label="Líquidos"
           value={fluids.value}
           unit={fluids.unit}
-          change={fluids.note}
-          changeTone="doctorNote"
-          accessibilityLabel={`Líquidos, 600 de 1000 mililitros. ${fluids.note}`}
+          change={fluids.change}
+          changeTone={fluids.tone}
+          accessibilityLabel={fluids.spoken}
         />
       </Grid>
 
@@ -135,7 +141,11 @@ export function HomeScreen({ navigation }: MainTabScreenProps<'HomeTab'>) {
             </AppText>
           </Pressable>
         </View>
-        <WeightWeekChart data={mockWeightWeek} />
+        {dashboard.weightWeek.length > 0 ? (
+          <WeightWeekChart data={dashboard.weightWeek} />
+        ) : (
+          <AppText color="textMuted">Aún no hay registros de peso. Aparecerán aquí.</AppText>
+        )}
       </GlassCard>
     </Screen>
   );

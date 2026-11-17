@@ -16,12 +16,7 @@ export function ScreenHeader({ title, subtitle, onBack }: ScreenHeaderProps) {
   return (
     <View style={styles.root}>
       {onBack && (
-        <IconButton
-          icon="chevron-back"
-          accessibilityLabel="Volver"
-          onPress={onBack}
-          testID="back"
-        />
+        <IconButton icon="dp-back" accessibilityLabel="Volver" onPress={onBack} testID="back" />
       )}
       <View style={styles.text}>
         <AppText variant={onBack ? 'title' : 'display'} accessibilityRole="header">

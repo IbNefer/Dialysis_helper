@@ -33,6 +33,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#0A171C"
         }
+      ],
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "DP-Hogar usa Face ID para que entres a tu cuenta sin escribir la contraseña."
+        }
       ]
     ]
   }

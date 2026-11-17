@@ -8,8 +8,8 @@ import {
   ScreenHeader,
   type ChipOption,
 } from '@/components/ui';
-import { mockAlerts } from '@/constants/mockData';
 import type { MainTabScreenProps } from '@/navigation/types';
+import { usePatientDashboard } from '@/services/patients/usePatientDashboard';
 import type { Severity } from '@/types/alerts';
 
 type Filter = 'all' | Severity;
@@ -21,11 +21,11 @@ const filters: ChipOption<Filter>[] = [
   { key: 'info', label: 'Info' },
 ];
 
-/** M8 · Alertas. Maqueta con alertas ficticias de las tres severidades. */
+/** M8 · Alertas del paciente con sesión (en desarrollo, del generador sintético). */
 export function AlertsScreen({ navigation }: MainTabScreenProps<'AlertsTab'>) {
+  const { alerts } = usePatientDashboard();
   const [filter, setFilter] = useState<Filter>('all');
-  const visible =
-    filter === 'all' ? mockAlerts : mockAlerts.filter((alert) => alert.severity === filter);
+  const visible = filter === 'all' ? alerts : alerts.filter((alert) => alert.severity === filter);
 
   return (
     <Screen testID="alerts-screen">

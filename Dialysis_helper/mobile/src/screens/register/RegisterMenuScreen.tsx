@@ -1,9 +1,11 @@
 import { Button, Grid, InlineNotice, MenuTile, Screen, ScreenHeader } from '@/components/ui';
-import { mockSummary } from '@/constants/mockData';
 import type { RegisterScreenProps } from '@/navigation/types';
+import { usePatientDashboard } from '@/services/patients/usePatientDashboard';
 
 /** Menú Registrar: lleva a M2, M3, M4 y M6. */
 export function RegisterMenuScreen({ navigation }: RegisterScreenProps<'RegisterMenu'>) {
+  const { pending } = usePatientDashboard();
+
   return (
     <Screen testID="register-menu-screen">
       <ScreenHeader
@@ -11,7 +13,7 @@ export function RegisterMenuScreen({ navigation }: RegisterScreenProps<'Register
         subtitle="Toca una opción. Se guarda aunque no tengas internet."
       />
 
-      <InlineNotice variant="pending" message={mockSummary.pending} />
+      {pending && <InlineNotice variant="pending" message={pending} />}
 
       <Grid>
         <MenuTile

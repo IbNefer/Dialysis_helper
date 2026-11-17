@@ -9,11 +9,13 @@ import {
   AppText,
   Avatar,
   Button,
+  Checkbox,
   ConfirmDialog,
   EmptyState,
   FilterChips,
   FloatingTabBar,
   GlassCard,
+  glyphNames,
   Grid,
   IconButton,
   InlineNotice,
@@ -22,12 +24,15 @@ import {
   MenuTile,
   NumberField,
   OfflineHint,
+  PasswordField,
   ProgressBar,
+  RequirementList,
   Screen,
   ScreenHeader,
   SeverityBadge,
   StatCard,
   TextField,
+  useToast,
   type IconName,
 } from '@/components/ui';
 import { OUT_OF_RANGE_MESSAGE } from '@/constants/copy';
@@ -110,6 +115,9 @@ export function ComponentCatalogScreen({ navigation }: ProfileScreenProps<'Compo
   const [dialog, setDialog] = useState<'primary' | 'danger' | null>(null);
   const [text, setText] = useState('');
   const [number, setNumber] = useState('162');
+  const [checked, setChecked] = useState(false);
+  const [password, setPassword] = useState('');
+  const { showToast } = useToast();
 
   return (
     <Screen withTabBar={false} testID="catalog-screen">
@@ -147,6 +155,19 @@ export function ComponentCatalogScreen({ navigation }: ProfileScreenProps<'Compo
               <AppIcon name={name} />
               <AppText variant="caption" color="textMuted">
                 {name}
+              </AppText>
+            </View>
+          ))}
+        </View>
+      </Section>
+
+      <Section title="Íconos SVG del prototipo (prefijo dp-)">
+        <View style={styles.swatches}>
+          {glyphNames.map((name) => (
+            <View key={name} style={styles.swatch}>
+              <AppIcon name={`dp-${name}`} />
+              <AppText variant="caption" color="textMuted">
+                dp-{name}
               </AppText>
             </View>
           ))}
@@ -234,6 +255,31 @@ export function ComponentCatalogScreen({ navigation }: ProfileScreenProps<'Compo
           value={number}
           onChangeText={setNumber}
           outOfRange={Number(number) > 140}
+        />
+      </Section>
+
+      <Section title="Errores, contraseña y requisitos">
+        <TextField label="Con error" value="maria@" error="Revisa tu correo." />
+        <PasswordField label="Contraseña" value={password} onChangeText={setPassword} />
+        <RequirementList
+          accessibilityLabel="Requisitos de ejemplo"
+          requirements={[
+            { key: 'length', label: 'Al menos 8 caracteres', met: password.length >= 8 },
+            { key: 'number', label: 'Al menos un número', met: /\d/.test(password) },
+          ]}
+        />
+      </Section>
+
+      <Section title="Checkbox">
+        <Checkbox label="Casilla de ejemplo" checked={checked} onChange={setChecked} />
+        <Checkbox label="Deshabilitada" checked={false} onChange={() => undefined} disabled />
+      </Section>
+
+      <Section title="Toast">
+        <Button
+          variant="secondary"
+          label="Mostrar toast"
+          onPress={() => showToast('Registro guardado')}
         />
       </Section>
 

@@ -26,7 +26,7 @@ const variants: Record<
     borderColor: colors.infoBorder,
   },
   attention: {
-    icon: 'warning',
+    icon: 'dp-warn',
     color: colors.attention,
     backgroundColor: colors.attentionBg,
     borderColor: colors.attentionBorder,
@@ -38,7 +38,7 @@ const variants: Record<
     borderColor: colors.urgentBorder,
   },
   pending: {
-    icon: 'time',
+    icon: 'dp-clock',
     color: colors.accentBlue,
     backgroundColor: colors.accentBlueSoft,
     borderColor: colors.accentBlueBorder,
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: spacing.sm,
     padding: spacing.md,
-    borderRadius: radii.lg,
+    borderRadius: radii.input,
     borderWidth: 1,
   },
   text: { flex: 1 },

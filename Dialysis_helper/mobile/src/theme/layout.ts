@@ -15,6 +15,10 @@ export const radii = {
   md: 16,
   lg: 20,
   card: 24,
+  /** Tarjeta destacada (formulario de acceso, resumen de hoy). */
+  cardLg: 28,
+  /** Campos de texto (prototipo: 16). */
+  input: 16,
   pill: 999,
 } as const;
 
@@ -22,12 +26,14 @@ export const sizes = {
   /** Área táctil mínima (WCAG recomienda 44; usamos 48). */
   touchTarget: 48,
   buttonHeight: 56,
-  inputHeight: 64,
+  /** Prototipo: campos de 60 px. */
+  inputHeight: 60,
   iconButton: 48,
   icon: 24,
   menuIcon: 30,
   menuIconBox: 56,
   logo: 64,
+  checkbox: 28,
   avatar: 52,
   progressHeight: 10,
   menuTileMinHeight: 168,
