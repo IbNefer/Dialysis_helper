@@ -1,4 +1,4 @@
-import { parseDecimal } from './format';
+import { parseDecimal } from './format.ts';
 
 export type Range = { min: number; max: number };
 
