@@ -5,13 +5,14 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  type ScrollViewProps,
   View,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { sizes, spacing } from '@/theme';
+import { colors, sizes, spacing } from '@/theme';
 
 import { AmbientBackground } from './AmbientBackground';
 
@@ -22,6 +23,11 @@ type ScreenProps = {
   /** Reserva espacio abajo para la barra de pestañas flotante. */
   withTabBar?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
+  /** Eventos del ScrollView (por ejemplo, saber si se leyó hasta el final). */
+  scrollViewProps?: Pick<
+    ScrollViewProps,
+    'onScroll' | 'scrollEventThrottle' | 'onLayout' | 'onContentSizeChange' | 'testID'
+  >;
   testID?: string;
 };
 
@@ -36,6 +42,7 @@ export function Screen({
   scroll = true,
   withTabBar = true,
   contentStyle,
+  scrollViewProps,
   testID,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
@@ -59,6 +66,7 @@ export function Screen({
       >
         {scroll ? (
           <ScrollView
+            {...scrollViewProps}
             contentContainerStyle={[styles.content, padding, contentStyle]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -69,6 +77,13 @@ export function Screen({
           <View style={[styles.root, styles.content, padding, contentStyle]}>{children}</View>
         )}
       </KeyboardAvoidingView>
+      {scroll && (
+        <View
+          pointerEvents="none"
+          style={[styles.statusBarScrim, { height: insets.top }]}
+          testID="status-bar-scrim"
+        />
+      )}
     </View>
   );
 }
@@ -76,4 +91,11 @@ export function Screen({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   content: { flexGrow: 1, gap: spacing.md },
+  statusBarScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.statusBarScrim,
+  },
 });

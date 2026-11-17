@@ -5,7 +5,7 @@ import { radii, spacing } from '@/theme';
 import { AppText } from './AppText';
 import { GlassCard } from './GlassCard';
 
-export type StatChangeTone = 'positive' | 'doctorNote' | 'neutral';
+export type StatChangeTone = 'positive' | 'attention' | 'doctorNote' | 'neutral';
 
 type StatCardProps = {
   label: string;
@@ -20,6 +20,7 @@ type StatCardProps = {
 
 const changeColor = {
   positive: 'success',
+  attention: 'attention',
   doctorNote: 'accentBlue',
   neutral: 'textMuted',
 } as const;

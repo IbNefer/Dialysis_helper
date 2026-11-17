@@ -15,10 +15,13 @@ export const colors = {
   inputBg: 'rgba(0,0,0,0.25)',
   inputBorder: 'rgba(255,255,255,0.18)',
   progressTrack: 'rgba(255,255,255,0.12)',
-  overlay: 'rgba(3,10,13,0.72)',
+  /** Fondo de los diálogos: casi opaco, como los modales del prototipo, para que no se lea lo de atrás. */
+  overlay: 'rgba(6,16,20,0.94)',
+  /** Franja detrás de la barra de estado para que el contenido desplazado no tape la hora ni los íconos. */
+  statusBarScrim: 'rgba(10,23,28,0.92)',
 
   text: '#F0FDFA',
-  textMuted: 'rgba(240,253,250,0.72)',
+  textMuted: 'rgba(240,253,250,0.74)',
 
   accentStart: '#34D399',
   accentEnd: '#38BDF8',
@@ -42,6 +45,11 @@ export const colors = {
   urgentBorder: 'rgba(248,113,113,0.45)',
   urgentTextSoft: '#FECACA',
   onUrgent: '#2A0A0A',
+
+  /** Toast de confirmación: superficie clara sobre el tema oscuro, como en el prototipo. */
+  toastBg: '#E6FFF6',
+  onToast: '#06302A',
+  toastIcon: '#059669',
 } as const;
 
 /** Degradado de acento a 135° (de arriba-izquierda a abajo-derecha) para expo-linear-gradient. */
