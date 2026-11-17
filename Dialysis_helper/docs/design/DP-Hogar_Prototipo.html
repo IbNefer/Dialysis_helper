@@ -1,0 +1,640 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>DP-Hogar Prototipo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: una pantalla de teléfono centrada (390×844) que ocupa toda la pantalla en móviles reales */
+:root{
+  color-scheme: dark;
+  --bg:#0A171C; --stage:#061014;
+  --glow1:rgba(16,185,129,.38); --glow2:rgba(59,130,246,.34);
+  --glass:rgba(255,255,255,.08); --glass-b:rgba(255,255,255,.14); --glass-sub:rgba(255,255,255,.05);
+  --input:rgba(0,0,0,.25); --input-b:rgba(255,255,255,.18);
+  --text:#F0FDFA; --muted:rgba(240,253,250,.74);
+  --g1:#34D399; --g2:#38BDF8; --on-accent:#04231F;
+  --green:#6EE7B7; --green-soft:rgba(52,211,153,.18);
+  --blue:#7DD3FC; --blue-soft:rgba(56,189,248,.16);
+  --info:#93C5FD; --info-bg:rgba(96,165,250,.18);
+  --att:#FCD34D; --att-bg:rgba(251,191,36,.14); --att-b:rgba(251,191,36,.45);
+  --urg:#F87171; --urg-bg:rgba(248,113,113,.14); --urg-b:rgba(248,113,113,.5); --on-urg:#2A0A0A;
+  --tab:rgba(15,32,38,.86);
+  --font:'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+html,body{height:100%}
+body{background:var(--stage);color:var(--text);font-family:var(--font);font-size:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px;box-sizing:border-box}
+*{box-sizing:border-box}
+button,input,select,textarea{font-family:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.stage{display:flex;justify-content:center}
+.phone{position:relative;width:390px;max-width:100%;height:844px;border-radius:48px;overflow:hidden;background:var(--bg);
+  border:10px solid #1B2A30;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+@media (max-width:440px){
+  body{padding:0}
+  .phone{width:100%;height:100%;min-height:640px;border:0;border-radius:0;box-shadow:none}
+}
+.glow{position:absolute;border-radius:50%;pointer-events:none}
+.glow.a{top:-140px;right:-160px;width:460px;height:460px;background:radial-gradient(circle,var(--glow1),transparent 70%)}
+.glow.b{bottom:40px;left:-200px;width:480px;height:480px;background:radial-gradient(circle,var(--glow2),transparent 70%)}
+.screen{position:absolute;inset:0;overflow-y:auto;padding:52px 20px 120px;display:flex;flex-direction:column;gap:16px;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.screen.no-tabs{padding-bottom:32px}
+@media (prefers-reduced-motion:no-preference){.screen{animation:in .22s ease-out}}
+@keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+h1{margin:0;font-size:28px;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+h2{margin:0;font-size:22px;font-weight:800}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.row{display:flex;align-items:center;gap:12px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.col{display:flex;flex-direction:column;gap:6px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+.card{background:var(--glass);border:1px solid var(--glass-b);border-radius:24px;padding:18px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);display:flex;flex-direction:column;gap:12px}
+.card.big{border-radius:28px;padding:20px;gap:14px}
+.card.sub{background:var(--glass-sub);border-color:rgba(255,255,255,.1)}
+.card.urgent{background:var(--urg-bg);border-color:var(--urg-b)}
+.stat{padding:16px;border-radius:22px;gap:6px}
+.stat .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat .u{font-size:15px;font-weight:600;color:var(--muted)}
+.stat .n{font-size:13px;font-weight:600}
+
+.btn{height:56px;border-radius:999px;border:0;padding:0 22px;font-size:17px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none;transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on-accent)}
+.btn.secondary{background:var(--glass);border:1px solid var(--input-b);color:var(--text);font-weight:700;font-size:16px}
+.btn.danger{background:var(--urg);color:var(--on-urg)}
+.btn.danger-soft{background:var(--urg-bg);border:1px solid var(--urg-b);color:#FECACA;height:60px}
+.btn.sm{height:48px;font-size:15px;padding:0 18px}
+.btn.block{width:100%}
+.link{background:none;border:0;color:var(--blue);font-size:15px;font-weight:700;cursor:pointer;padding:8px 0}
+.iconbtn{position:relative;width:48px;height:48px;border-radius:50%;border:1px solid var(--glass-b);background:var(--glass);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.iconbtn .dot{position:absolute;top:8px;right:9px;width:10px;height:10px;border-radius:50%;background:var(--g1);border:2px solid #12262C}
+
+.avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on-accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;flex:none}
+.pill{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:800;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.pill.info{background:var(--info-bg);border:1px solid rgba(96,165,250,.45);color:var(--info)}
+.pill.att{background:rgba(251,191,36,.18);border:1px solid var(--att-b);color:var(--att)}
+.pill.urg{background:var(--urg);color:var(--on-urg)}
+.pill.blue{background:var(--blue-soft);color:var(--blue);font-size:14px;font-weight:700}
+
+.bar{height:10px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--g1),var(--g2));transition:width .35s}
+.bar.over>i{background:var(--att)}
+.chart{display:flex;align-items:flex-end;justify-content:space-between;height:80px;padding:0 6px}
+.chart i{width:26px;border-radius:13px;background:rgba(255,255,255,.16);transition:height .35s}
+.chart i.today{background:linear-gradient(180deg,var(--g1),var(--g2))}
+.days{display:flex;justify-content:space-between;padding:0 6px;font-size:12px;color:var(--muted)}
+.days span{width:26px;text-align:center}
+
+.tile{display:flex;flex-direction:column;gap:14px;min-height:168px;padding:18px;border-radius:24px;background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);cursor:pointer;text-align:left;font-size:inherit}
+.tile .ic{width:56px;height:56px;border-radius:18px;display:flex;align-items:center;justify-content:center}
+.tile .ic.g{background:var(--green-soft);color:var(--green)}
+.tile .ic.b{background:var(--blue-soft);color:var(--blue)}
+.tile b{font-size:17px;line-height:1.25;display:block}
+.tile small{font-size:14px;line-height:1.35;color:var(--muted);display:block;margin-top:4px}
+
+.notice{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;font-size:15px;line-height:1.4}
+.notice svg{flex:none}
+.notice.att{background:var(--att-bg);border:1px solid var(--att-b);color:#FEF3C7}
+.notice.pend{background:var(--blue-soft);border:1px solid rgba(56,189,248,.38)}
+.notice.ok{color:var(--muted);justify-content:center;align-items:center;font-size:14px;padding:0}
+
+.field{display:flex;flex-direction:column;gap:8px}
+.field label,.lbl{font-size:15px;font-weight:600}
+.inp{display:flex;align-items:center;height:60px;padding:0 16px;border-radius:16px;border:1px solid var(--input-b);background:var(--input);transition:border-color .15s}
+.inp:focus-within{border:2px solid var(--g1);padding:0 15px}
+.inp.warn{border:2px solid #FBBF24;padding:0 15px}
+.inp input,.inp select{flex:1;min-width:0;border:0;background:transparent;font-size:24px;font-weight:700;outline:none;font-variant-numeric:tabular-nums}
+.inp select{font-size:18px;appearance:none;cursor:pointer}
+.inp select option{background:#0F2026;color:var(--text)}
+.inp .unit{font-size:15px;font-weight:600;color:var(--muted)}
+.inp.text input{font-size:17px;font-weight:500}
+textarea{width:100%;min-height:88px;padding:14px 16px;border-radius:16px;border:1px solid var(--input-b);background:var(--input);font-size:16px;resize:vertical}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);font-size:15px;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on-accent);border-color:transparent;font-weight:800}
+.chip.big{min-height:52px;font-size:16px}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.seg .chip{padding:0 8px}
+
+.back{display:flex;align-items:center;gap:12px}
+
+.tabbar{position:absolute;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom,0px));height:72px;padding:0 8px;border-radius:36px;background:var(--tab);border:1px solid var(--glass-b);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;z-index:5}
+.tab{height:56px;margin:0 3px;border-radius:28px;border:0;background:transparent;color:rgba(240,253,250,.8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;cursor:pointer;position:relative}
+.tab[aria-current="page"]{background:var(--green-soft);color:var(--green);font-weight:700}
+.tab .badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--urg);color:var(--on-urg);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+.toast{position:absolute;left:24px;right:24px;bottom:108px;z-index:20;padding:14px 18px;border-radius:18px;background:#E6FFF6;color:#06302A;font-weight:700;font-size:15px;display:flex;gap:10px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.modal{position:absolute;inset:0;z-index:30;background:rgba(40,6,6,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;flex-direction:column;justify-content:center;gap:18px;padding:32px 24px}
+.modal .big-ic{width:84px;height:84px;border-radius:50%;background:var(--urg);color:var(--on-urg);display:flex;align-items:center;justify-content:center}
+.modal h2{font-size:30px;line-height:1.2}
+.phone-num{font-size:22px;font-weight:800;user-select:all;font-variant-numeric:tabular-nums}
+.empty{text-align:center;padding:32px 12px;color:var(--muted)}
+.list-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.list-item:last-child{border-bottom:0}
+.list-item .ic{width:44px;height:44px;border-radius:14px;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.disclaimer{font-size:13px;line-height:1.5;text-align:center;color:var(--muted)}
+.logo{width:64px;height:64px;border-radius:20px;background:linear-gradient(135deg,var(--g1),var(--g2));color:var(--on-accent);display:flex;align-items:center;justify-content:center}
+</style>
+
+<div class="stage">
+<div class="phone" id="phone">
+  <div class="glow a" aria-hidden="true"></div>
+  <div class="glow b" aria-hidden="true"></div>
+
+  <!-- LOGIN -->
+  <section class="screen no-tabs" data-screen="login" style="padding-top:88px;gap:28px">
+    <div class="col" style="gap:16px">
+      <div class="logo" aria-hidden="true"><span data-i="drop" data-s="34"></span></div>
+      <div class="col">
+        <h1 style="font-size:34px">DP-Hogar</h1>
+        <p class="muted" style="font-size:17px;line-height:1.45">Tu diálisis en casa, acompañada por tu equipo de salud.</p>
+      </div>
+    </div>
+    <form class="card big" id="loginForm" novalidate>
+      <div class="field"><label for="email">Correo electrónico</label>
+        <div class="inp text"><input id="email" type="email" value="maria@ejemplo.com" autocomplete="off"></div></div>
+      <div class="field"><label for="pass">Contraseña</label>
+        <div class="inp text"><input id="pass" type="password" value="demo1234"></div></div>
+      <button class="btn primary block" type="submit">Iniciar sesión</button>
+      <button class="btn secondary block" type="button" id="bioBtn"><span data-i="face"></span>Entrar con Face ID o huella</button>
+    </form>
+    <button class="link" style="align-self:center" data-toast="Pídele a tu doctor el código de invitación">Tengo una invitación de mi doctor</button>
+    <p class="disclaimer">Esta app no sustituye la atención de urgencia. En una emergencia llama al 911.</p>
+  </section>
+
+  <!-- INICIO -->
+  <section class="screen" data-screen="home" hidden>
+    <div class="between">
+      <div class="row">
+        <div class="avatar" aria-hidden="true">MR</div>
+        <div class="col" style="gap:2px">
+          <span class="muted" style="font-size:14px" id="today"></span>
+          <span style="font-size:21px;font-weight:700" id="greet">Hola, María</span>
+        </div>
+      </div>
+      <button class="iconbtn" data-go="alerts" id="bell" aria-label="Ver alertas"><span data-i="bell"></span><span class="dot" id="bellDot"></span></button>
+    </div>
+
+    <div class="card big">
+      <div class="between" style="align-items:flex-start">
+        <div class="col" style="gap:4px">
+          <span class="eyebrow">Resumen de hoy</span>
+          <span style="font-size:26px;font-weight:800" id="exText">3 de 4 intercambios</span>
+        </div>
+        <span class="pill blue" id="exPct">75 %</span>
+      </div>
+      <div class="bar" aria-hidden="true"><i id="exBar" style="width:75%"></i></div>
+      <div class="between">
+        <div class="col" style="gap:2px">
+          <span class="muted" style="font-size:14px">Próximo intercambio</span>
+          <span style="font-size:18px;font-weight:700" id="nextEx">2:00 p. m.</span>
+        </div>
+        <button class="btn primary sm" data-go="session" style="height:52px">Registrar ahora</button>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <button class="card stat" data-go="vitals" style="text-align:left;cursor:pointer;font-size:inherit">
+        <span class="muted" style="font-size:14px">Peso</span>
+        <span class="v"><span id="hWeight">68,4</span> <span class="u">kg</span></span>
+        <span class="n" id="hWeightN" style="color:var(--green)">−0,3 vs. ayer</span>
+      </button>
+      <button class="card stat" data-go="vitals" style="text-align:left;cursor:pointer;font-size:inherit">
+        <span class="muted" style="font-size:14px">Presión</span>
+        <span class="v" id="hBp">128/82</span>
+        <span class="n muted" id="hBpN">mmHg · 8:10 a. m.</span>
+      </button>
+      <button class="card stat" data-go="session" style="text-align:left;cursor:pointer;font-size:inherit">
+        <span class="muted" style="font-size:14px">Balance</span>
+        <span class="v"><span id="hBal">+450</span> <span class="u">ml</span></span>
+        <span class="n muted" id="hBalN">3 intercambios</span>
+      </button>
+      <button class="card stat" data-go="fluids" style="text-align:left;cursor:pointer;font-size:inherit">
+        <span class="muted" style="font-size:14px">Líquidos</span>
+        <span class="v"><span id="hFl">600</span> <span class="u">/ 1000 ml</span></span>
+        <span class="n" style="color:var(--blue)" id="hFlN">Límite de tu doctor</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="between">
+        <span style="font-size:16px;font-weight:700">Peso · últimos 7 días</span>
+        <button class="link" data-toast="El historial completo llega en el módulo M7">Ver historial</button>
+      </div>
+      <div class="chart" id="chart" role="img" aria-label="Gráfico de peso de los últimos 7 días"></div>
+      <div class="days" aria-hidden="true"><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span><span>Lun</span><span>Hoy</span></div>
+    </div>
+  </section>
+
+  <!-- REGISTRAR -->
+  <section class="screen" data-screen="register" hidden>
+    <div class="col" style="gap:4px">
+      <h1>¿Qué quieres registrar?</h1>
+      <p class="muted">Toca una opción. Se guarda aunque no tengas internet.</p>
+    </div>
+    <div class="notice pend" id="pending"><span data-i="clock" style="color:var(--blue)"></span><span style="font-weight:600">Pendiente hoy: tu peso de la noche</span></div>
+    <div class="grid2">
+      <button class="tile" data-go="session"><span class="ic b" aria-hidden="true"><span data-i="drop" data-s="30"></span></span><span><b>Sesión de diálisis</b><small>Intercambio, volumen y balance</small></span></button>
+      <button class="tile" data-go="vitals"><span class="ic g" aria-hidden="true"><span data-i="heart" data-s="30"></span></span><span><b>Signos vitales y peso</b><small>Presión, temperatura, peso</small></span></button>
+      <button class="tile" data-go="fluids"><span class="ic b" aria-hidden="true"><span data-i="cup" data-s="30"></span></span><span><b>Líquidos y comidas</b><small>Lo que tomas y eliminas</small></span></button>
+      <button class="tile" data-go="symptoms"><span class="ic g" aria-hidden="true"><span data-i="sad" data-s="30"></span></span><span><b>Síntomas</b><small>Dolor, fiebre, sitio de salida</small></span></button>
+    </div>
+    <button class="btn danger-soft block" data-call><span data-i="phone"></span>Contactar a mi equipo</button>
+  </section>
+
+  <!-- SESIÓN DE DIÁLISIS -->
+  <section class="screen no-tabs" data-screen="session" hidden>
+    <div class="back"><button class="iconbtn" data-go="register" aria-label="Volver"><span data-i="back"></span></button>
+      <div class="col" style="gap:2px"><h2>Sesión de diálisis</h2><span class="muted" style="font-size:14px" id="sessWhen">Intercambio 4 de 4</span></div></div>
+    <form class="card big" id="sessForm" novalidate>
+      <div class="field"><label for="sol">Tipo de solución</label>
+        <div class="inp"><select id="sol"><option>Glucosa 1,5 %</option><option selected>Glucosa 2,5 %</option><option>Glucosa 4,25 %</option></select><span class="unit">▾</span></div></div>
+      <div class="grid2">
+        <div class="field"><label for="vin">Infundido</label><div class="inp"><input id="vin" inputmode="numeric" value="2000"><span class="unit">ml</span></div></div>
+        <div class="field"><label for="vout">Drenado</label><div class="inp"><input id="vout" inputmode="numeric" value="2150"><span class="unit">ml</span></div></div>
+      </div>
+      <div class="between card sub" style="padding:14px 16px;border-radius:16px;flex-direction:row">
+        <span class="muted" style="font-size:15px">Balance de este intercambio</span>
+        <span style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums" id="sessBal">+150 ml</span>
+      </div>
+      <div class="field"><span class="lbl" id="aspLbl">Aspecto del líquido drenado</span>
+        <div class="seg" role="group" aria-labelledby="aspLbl" id="aspect">
+          <button type="button" class="chip big" aria-pressed="true" data-v="claro">Claro</button>
+          <button type="button" class="chip big" aria-pressed="false" data-v="turbio">Turbio</button>
+          <button type="button" class="chip big" aria-pressed="false" data-v="sangre">Con sangre</button>
+        </div></div>
+      <div class="notice att" id="aspWarn" hidden><span data-i="warn" style="color:var(--att)"></span><span><strong>Importante.</strong> Al guardar te pediremos contactar a tu equipo de salud.</span></div>
+    </form>
+    <button class="btn primary block" id="sessSave" style="height:60px">Guardar intercambio</button>
+    <div class="notice ok"><span data-i="check" data-s="20" style="color:var(--green)"></span>Se guarda en tu teléfono y se envía al tener conexión</div>
+  </section>
+
+  <!-- SIGNOS VITALES -->
+  <section class="screen no-tabs" data-screen="vitals" hidden>
+    <div class="back"><button class="iconbtn" data-go="register" aria-label="Volver"><span data-i="back"></span></button>
+      <div class="col" style="gap:2px"><h2>Signos vitales y peso</h2><span class="muted" style="font-size:14px" id="vitWhen">Hoy</span></div></div>
+    <form class="card big" id="vitForm" novalidate>
+      <div class="field"><label for="w">Peso</label><div class="inp" data-f="w"><input id="w" inputmode="decimal" value="68,4"><span class="unit">kg</span></div></div>
+      <div class="grid2">
+        <div class="field"><label for="sys">Presión alta</label><div class="inp" data-f="sys"><input id="sys" inputmode="numeric" value="128" aria-describedby="vitWarn"><span class="unit">mmHg</span></div></div>
+        <div class="field"><label for="dia">Presión baja</label><div class="inp" data-f="dia"><input id="dia" inputmode="numeric" value="82" aria-describedby="vitWarn"><span class="unit">mmHg</span></div></div>
+      </div>
+      <div class="field"><label for="t">Temperatura</label><div class="inp" data-f="t"><input id="t" inputmode="decimal" value="36,8" aria-describedby="vitWarn"><span class="unit">°C</span></div></div>
+      <div class="notice att" id="vitWarn" hidden role="status"><span data-i="warn" style="color:var(--att)"></span><span><strong>Atención.</strong> <span id="vitWarnTxt">Este valor está fuera de lo habitual.</span> Avisa a tu equipo de salud.</span></div>
+      <p class="muted" style="font-size:13px">Prueba con presión alta 165 o temperatura 38,2 para ver el aviso.</p>
+    </form>
+    <button class="btn primary block" id="vitSave" style="height:60px">Guardar registro</button>
+    <div class="notice ok"><span data-i="check" data-s="20" style="color:var(--green)"></span>Se guarda en tu teléfono y se envía al tener conexión</div>
+  </section>
+
+  <!-- LÍQUIDOS -->
+  <section class="screen no-tabs" data-screen="fluids" hidden>
+    <div class="back"><button class="iconbtn" data-go="register" aria-label="Volver"><span data-i="back"></span></button>
+      <div class="col" style="gap:2px"><h2>Líquidos y comidas</h2><span class="muted" style="font-size:14px">Límite diario fijado por tu doctor</span></div></div>
+    <div class="card big">
+      <span class="eyebrow">Hoy llevas</span>
+      <div class="between" style="align-items:flex-end">
+        <span style="font-size:40px;font-weight:800;font-variant-numeric:tabular-nums" id="flNow">600 ml</span>
+        <span class="muted" style="font-size:16px;font-weight:600">de 1000 ml</span>
+      </div>
+      <div class="bar" id="flBarWrap"><i id="flBar" style="width:60%"></i></div>
+      <div class="notice att" id="flWarn" hidden><span data-i="warn" style="color:var(--att)"></span><span>Llegaste al límite que fijó tu doctor. Si tienes sed, avisa a tu equipo de salud.</span></div>
+    </div>
+    <div class="col" style="gap:10px">
+      <span class="lbl">Agregar lo que tomaste</span>
+      <div class="seg">
+        <button class="chip big" data-add="150">+150 ml</button>
+        <button class="chip big" data-add="250">+250 ml</button>
+        <button class="chip big" data-add="500">+500 ml</button>
+      </div>
+      <button class="link" id="flUndo" style="align-self:flex-start">Deshacer último</button>
+    </div>
+    <div class="field"><label for="meal">Comida (opcional)</label>
+      <div class="inp text"><input id="meal" placeholder="Ej.: arroz, pollo y ensalada"></div></div>
+    <button class="btn primary block" id="flSave" style="height:60px">Guardar</button>
+  </section>
+
+  <!-- SÍNTOMAS -->
+  <section class="screen no-tabs" data-screen="symptoms" hidden>
+    <div class="back"><button class="iconbtn" data-go="register" aria-label="Volver"><span data-i="back"></span></button>
+      <div class="col" style="gap:2px"><h2>Síntomas</h2><span class="muted" style="font-size:14px">Marca todo lo que sientes ahora</span></div></div>
+    <div class="card big">
+      <div class="chips" id="symChips" role="group" aria-label="Síntomas">
+        <button class="chip big" aria-pressed="false" data-alarm="1">Dolor abdominal fuerte</button>
+        <button class="chip big" aria-pressed="false" data-alarm="1">Fiebre</button>
+        <button class="chip big" aria-pressed="false" data-alarm="1">Líquido turbio</button>
+        <button class="chip big" aria-pressed="false">Enrojecimiento en el sitio de salida</button>
+        <button class="chip big" aria-pressed="false">Náuseas</button>
+        <button class="chip big" aria-pressed="false">Hinchazón</button>
+        <button class="chip big" aria-pressed="false">Cansancio</button>
+      </div>
+      <div class="field"><label for="symNote">Nota (opcional)</label><textarea id="symNote" placeholder="¿Desde cuándo? ¿Qué tan fuerte?"></textarea></div>
+    </div>
+    <button class="btn primary block" id="symSave" style="height:60px">Guardar síntomas</button>
+  </section>
+
+  <!-- ALERTAS -->
+  <section class="screen" data-screen="alerts" hidden>
+    <h1>Alertas</h1>
+    <div class="chips" role="group" aria-label="Filtrar alertas" id="filters">
+      <button class="chip" aria-pressed="true" data-f="all">Todas</button>
+      <button class="chip" aria-pressed="false" data-f="urg">Urgentes</button>
+      <button class="chip" aria-pressed="false" data-f="att">Atención</button>
+      <button class="chip" aria-pressed="false" data-f="info">Info</button>
+    </div>
+    <div class="col" style="gap:12px" id="alertList"></div>
+  </section>
+
+  <!-- PERFIL -->
+  <section class="screen" data-screen="profile" hidden>
+    <div class="row" style="gap:16px">
+      <div class="avatar" style="width:64px;height:64px;font-size:22px" aria-hidden="true">MR</div>
+      <div class="col" style="gap:2px"><h2>María Rodríguez</h2><span class="muted">Paciente de ejemplo · Diálisis peritoneal</span></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Contactos</span>
+      <div class="list-item"><span class="ic" aria-hidden="true"><span data-i="user"></span></span><div class="col" style="gap:2px;flex:1;min-width:0"><b>Mi equipo de salud</b><span class="muted phone-num" style="font-size:16px">809-555-0100</span></div><button class="btn secondary sm" data-call aria-label="Llamar a mi equipo"><span data-i="phone" data-s="20"></span></button></div>
+      <div class="list-item"><span class="ic" aria-hidden="true" style="background:var(--urg-bg);color:var(--urg)"><span data-i="warn"></span></span><div class="col" style="gap:2px;flex:1"><b>Emergencias</b><span class="muted phone-num" style="font-size:16px">911</span></div></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Ajustes</span>
+      <div class="between"><span>Tamaño de letra</span>
+        <div class="row" style="gap:8px"><button class="iconbtn" id="fsDown" aria-label="Letra más pequeña" style="font-weight:800">A−</button><button class="iconbtn" id="fsUp" aria-label="Letra más grande" style="font-weight:800">A+</button></div></div>
+      <div class="between"><span>Sin molestar (no urgentes)</span><span class="muted">10 p. m. – 7 a. m.</span></div>
+    </div>
+    <button class="btn secondary block" id="logout">Cerrar sesión</button>
+    <p class="disclaimer">Prototipo con datos ficticios. Las alertas usan parámetros definidos por tu doctor y no son diagnósticos.</p>
+  </section>
+
+  <nav class="tabbar" id="tabbar" aria-label="Navegación principal" hidden>
+    <button class="tab" data-go="home" data-tab="home"><span data-i="home"></span>Inicio</button>
+    <button class="tab" data-go="register" data-tab="register"><span data-i="plus"></span>Registrar</button>
+    <button class="tab" data-go="alerts" data-tab="alerts"><span data-i="bell"></span>Alertas<span class="badge" id="tabBadge">2</span></button>
+    <button class="tab" data-go="profile" data-tab="profile"><span data-i="user"></span>Perfil</button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden><span data-i="check" data-s="22" style="color:#059669"></span><span id="toastTxt"></span></div>
+
+  <div class="modal" id="urgent" role="alertdialog" aria-modal="true" aria-labelledby="urgTitle" hidden>
+    <div class="big-ic" aria-hidden="true"><span data-i="phone" data-s="40"></span></div>
+    <h2 id="urgTitle">Contacta a tu equipo ahora</h2>
+    <p style="font-size:17px;line-height:1.45;color:#FECACA" id="urgTxt">Registraste un síntoma de alarma.</p>
+    <div class="col" style="gap:4px"><span style="color:#FECACA;font-size:14px">Mi equipo de salud</span><span class="phone-num">809-555-0100</span></div>
+    <a class="btn danger block" href="tel:8095550100" style="height:60px"><span data-i="phone"></span>Llamar a mi equipo</a>
+    <a class="btn secondary block" href="tel:911">Llamar al 911</a>
+    <button class="link" id="urgClose" style="color:#FECACA;align-self:center">Cerrar</button>
+    <p class="disclaimer" style="color:#FECACA">Esta app no sustituye la atención de urgencia.</p>
+  </div>
+
+  <div class="modal" id="callSheet" role="dialog" aria-modal="true" aria-labelledby="callTitle" hidden style="background:rgba(6,16,20,.94)">
+    <h2 id="callTitle">Llamar a mi equipo</h2>
+    <div class="col" style="gap:4px"><span class="muted" style="font-size:14px">Número de la clínica (ejemplo)</span><span class="phone-num">809-555-0100</span></div>
+    <a class="btn primary block" href="tel:8095550100" style="height:60px"><span data-i="phone"></span>Llamar ahora</a>
+    <a class="btn danger-soft block" href="tel:911">Llamar al 911</a>
+    <button class="link" id="callClose" style="align-self:center">Cerrar</button>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  var D = '#0A171C';
+  var I = {
+    home:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2.5 11H5v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9h2.5z"/></svg>',
+    plus:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 7v10M7 12h10" stroke="'+D+'" stroke-width="2.6" stroke-linecap="round"/></svg>',
+    bell:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-6 6c0 6-3 8-3 8h18s-3-2-3-8a6 6 0 0 0-6-6z"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0z"/></svg>',
+    user:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7.5" r="4.5"/><path d="M3 21c0-4.4 4-7.5 9-7.5s9 3.1 9 7.5z"/></svg>',
+    drop:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2s-7 7.6-7 12.5a7 7 0 0 0 14 0C19 9.6 12 2 12 2z"/></svg>',
+    heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-8.5-5.2-8.5-11.2A4.8 4.8 0 0 1 12 6.6a4.8 4.8 0 0 1 8.5 3.2C20.5 15.8 12 21 12 21z"/></svg>',
+    cup:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14l-1.7 17.2a2 2 0 0 1-2 1.8H8.7a2 2 0 0 1-2-1.8z"/></svg>',
+    sad:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="9" cy="10" r="1.4" fill="'+D+'"/><circle cx="15" cy="10" r="1.4" fill="'+D+'"/><path d="M8.5 16.5a4.5 4.5 0 0 1 7 0" fill="none" stroke="'+D+'" stroke-width="2" stroke-linecap="round"/></svg>',
+    face:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><circle cx="9" cy="10" r="1.4" fill="'+D+'"/><circle cx="15" cy="10" r="1.4" fill="'+D+'"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" fill="none" stroke="'+D+'" stroke-width="2" stroke-linecap="round"/></svg>',
+    phone:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg>',
+    warn:'<svg viewBox="0 0 24 24"><path d="M12 2.5 1.5 21h21z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 9.5v5M12 17.6v.2" stroke="'+D+'" stroke-width="2.4" stroke-linecap="round"/></svg>',
+    check:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="m7.5 12.5 3 3 6-6.5" fill="none" stroke="'+D+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 7v5.5l3.5 2" fill="none" stroke="'+D+'" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>'
+  };
+  function paintIcons(root){
+    (root||document).querySelectorAll('[data-i]').forEach(function(el){
+      if(el.dataset.done) return;
+      var s = el.dataset.s || 24;
+      el.innerHTML = I[el.dataset.i] || '';
+      var svg = el.firstChild; if(svg){svg.setAttribute('width',s);svg.setAttribute('height',s);svg.setAttribute('aria-hidden','true');}
+      el.style.display='inline-flex'; el.dataset.done='1';
+    });
+  }
+  paintIcons();
+
+  var $ = function(id){return document.getElementById(id)};
+  var num = function(v){ return parseFloat(String(v).replace(',','.')); };
+  var fmt = function(n,d){ return n.toFixed(d).replace('.',','); };
+  var now = function(){ var d=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0'); var ap=h>=12?'p. m.':'a. m.'; h=h%12||12; return h+':'+m+' '+ap; };
+
+  var S = {
+    weight:68.4, prevWeight:68.7, sys:128, dia:82, temp:36.8,
+    exDone:3, exTotal:4, balance:450, fluids:600, limit:1000, fluidLog:[],
+    weights:[68.9,69.0,68.6,69.1,68.8,68.7,68.4],
+    filter:'all',
+    alerts:[
+      {id:1,sev:'att',text:'Tu presión estuvo fuera de lo habitual 2 veces esta semana. Avisa a tu equipo de salud.',time:'Ayer, 8:10 p. m.',read:false},
+      {id:2,sev:'info',text:'Es hora de tu intercambio de las 2:00 p. m.',time:'Hoy, 1:45 p. m.',read:false},
+      {id:3,sev:'info',text:'Aún no has registrado tu peso de hoy.',time:'Hoy, 9:00 a. m.',read:true}
+    ]
+  };
+
+  var d = new Date();
+  var dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  $('today').textContent = dias[d.getDay()]+', '+d.getDate()+' de '+meses[d.getMonth()];
+  var h=d.getHours(); $('greet').textContent=(h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches')+', María';
+
+  /* ---------- navegación ---------- */
+  var tabScreens = {home:1,register:1,alerts:1,profile:1};
+  var current='login';
+  function go(name){
+    document.querySelectorAll('[data-screen]').forEach(function(s){ s.hidden = s.dataset.screen!==name; });
+    $('tabbar').hidden = !tabScreens[name];
+    document.querySelectorAll('.tab').forEach(function(t){ if(t.dataset.tab===name) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current'); });
+    var sc=document.querySelector('[data-screen="'+name+'"]'); if(sc) sc.scrollTop=0;
+    current=name;
+    if(name==='home') renderHome();
+    if(name==='alerts') renderAlerts();
+    if(name==='vitals'){ $('vitWhen').textContent='Hoy · '+now(); }
+    if(name==='session'){ $('sessWhen').textContent='Intercambio '+Math.min(S.exDone+1,S.exTotal)+' de '+S.exTotal; calcBal(); }
+    if(name==='fluids') renderFluids();
+  }
+  document.addEventListener('click',function(e){
+    var g=e.target.closest('[data-go]'); if(g){ e.preventDefault(); go(g.dataset.go); return; }
+    var t=e.target.closest('[data-toast]'); if(t){ toast(t.dataset.toast); return; }
+    var c=e.target.closest('[data-call]'); if(c){ $('callSheet').hidden=false; return; }
+  });
+
+  var tt;
+  function toast(msg){ $('toastTxt').textContent=msg; $('toast').hidden=false; clearTimeout(tt); tt=setTimeout(function(){ $('toast').hidden=true; },2600); }
+  function urgent(msg){ $('urgTxt').textContent=msg; $('urgent').hidden=false; }
+  $('urgClose').onclick=function(){ $('urgent').hidden=true; };
+  $('callClose').onclick=function(){ $('callSheet').hidden=true; };
+
+  function addAlert(sev,text){ S.alerts.unshift({id:Date.now(),sev:sev,text:text,time:'Hoy, '+now(),read:false}); updateBadges(); }
+  function updateBadges(){
+    var n=S.alerts.filter(function(a){return !a.read}).length;
+    $('tabBadge').textContent=n; $('tabBadge').hidden=!n; $('bellDot').hidden=!n;
+    $('bell').setAttribute('aria-label', n? 'Ver alertas, '+n+' sin leer':'Ver alertas');
+  }
+
+  /* ---------- login ---------- */
+  $('loginForm').addEventListener('submit',function(e){ e.preventDefault(); go('home'); toast('Sesión iniciada'); });
+  $('bioBtn').onclick=function(){ go('home'); toast('Identidad verificada'); };
+  $('logout').onclick=function(){ go('login'); };
+
+  /* ---------- inicio ---------- */
+  function renderHome(){
+    var pct=Math.round(S.exDone/S.exTotal*100);
+    $('exText').textContent=S.exDone+' de '+S.exTotal+' intercambios';
+    $('exPct').textContent=pct+' %'; $('exBar').style.width=pct+'%';
+    $('nextEx').textContent = S.exDone>=S.exTotal ? 'Completado por hoy' : ['8:00 a. m.','12:00 p. m.','2:00 p. m.','8:00 p. m.'][S.exDone];
+    $('hWeight').textContent=fmt(S.weight,1);
+    var diff=S.weight-S.prevWeight;
+    $('hWeightN').textContent=(diff<=0?'−':'+')+fmt(Math.abs(diff),1)+' vs. ayer';
+    $('hWeightN').style.color = diff<=0 ? 'var(--green)' : 'var(--att)';
+    $('hBp').textContent=S.sys+'/'+S.dia;
+    $('hBal').textContent=(S.balance>=0?'+':'')+S.balance;
+    $('hBalN').textContent=S.exDone+' intercambios';
+    $('hFl').textContent=S.fluids;
+    $('hFlN').textContent = S.fluids>=S.limit ? 'Llegaste a tu límite' : 'Límite de tu doctor';
+    $('hFlN').style.color = S.fluids>=S.limit ? 'var(--att)' : 'var(--blue)';
+    var mn=Math.min.apply(null,S.weights)-0.6, mx=Math.max.apply(null,S.weights)+0.2;
+    $('chart').innerHTML=S.weights.map(function(w,i){ var hgt=Math.round(18+(w-mn)/(mx-mn)*60); return '<i'+(i===6?' class="today"':'')+' style="height:'+hgt+'px"></i>'; }).join('');
+    $('chart').setAttribute('aria-label','Peso de los últimos 7 días, entre '+fmt(Math.min.apply(null,S.weights),1)+' y '+fmt(Math.max.apply(null,S.weights),1)+' kg. Hoy '+fmt(S.weight,1)+' kg');
+    updateBadges();
+  }
+
+  /* ---------- sesión ---------- */
+  var aspect='claro';
+  function calcBal(){
+    var b=(parseInt($('vout').value,10)||0)-(parseInt($('vin').value,10)||0);
+    $('sessBal').textContent=(b>=0?'+':'')+b+' ml'; return b;
+  }
+  $('vin').oninput=calcBal; $('vout').oninput=calcBal;
+  $('aspect').addEventListener('click',function(e){
+    var b=e.target.closest('.chip'); if(!b) return;
+    aspect=b.dataset.v;
+    this.querySelectorAll('.chip').forEach(function(c){ c.setAttribute('aria-pressed', c===b); });
+    $('aspWarn').hidden = aspect==='claro';
+  });
+  $('sessSave').onclick=function(){
+    if(!$('vin').value||!$('vout').value){ toast('Escribe el volumen infundido y drenado'); return; }
+    var b=calcBal();
+    if(S.exDone<S.exTotal) S.exDone++;
+    S.balance+=b;
+    if(aspect!=='claro'){
+      addAlert('urg','Registraste líquido drenado '+(aspect==='turbio'?'turbio':'con sangre')+'. Contacta a tu equipo ahora.');
+      go('home'); urgent('Registraste líquido drenado '+(aspect==='turbio'?'turbio':'con sangre')+'. Llama a tu equipo de salud ahora.');
+    } else { go('home'); toast('Intercambio guardado'); }
+  };
+
+  /* ---------- signos vitales ---------- */
+  var ranges={w:[35,150,'El peso'],sys:[90,140,'La presión alta'],dia:[50,90,'La presión baja'],t:[35.5,37.9,'La temperatura']};
+  function checkVitals(){
+    var out=[];
+    Object.keys(ranges).forEach(function(k){
+      var v=num($(k).value), r=ranges[k], box=document.querySelector('.inp[data-f="'+k+'"]');
+      var bad = !isNaN(v) && (v<r[0]||v>r[1]);
+      box.classList.toggle('warn',bad); if(bad) out.push(r[2]);
+    });
+    $('vitWarn').hidden=!out.length;
+    if(out.length) $('vitWarnTxt').textContent=out.join(' y ').replace(/^./,function(c){return c})+(out.length>1?' están':' está')+' fuera de lo habitual.';
+    return out;
+  }
+  ['w','sys','dia','t'].forEach(function(k){ $(k).addEventListener('input',checkVitals); });
+  $('vitSave').onclick=function(){
+    var w=num($('w').value), s=parseInt($('sys').value,10), di=parseInt($('dia').value,10), t=num($('t').value);
+    if([w,s,di,t].some(isNaN)){ toast('Completa todos los campos'); return; }
+    var out=checkVitals();
+    S.prevWeight=S.weights[5]; S.weight=w; S.weights[6]=w; S.sys=s; S.dia=di; S.temp=t;
+    $('hBpN').textContent='mmHg · '+now();
+    $('pending').hidden=true;
+    if(out.length) addAlert('att', out.join(' y ')+(out.length>1?' están':' está')+' fuera de lo habitual. Avisa a tu equipo de salud.');
+    go('home'); toast(out.length?'Guardado. Revisa tus alertas':'Registro guardado');
+  };
+
+  /* ---------- líquidos ---------- */
+  function renderFluids(){
+    $('flNow').textContent=S.fluids+' ml';
+    $('flBar').style.width=Math.min(100,S.fluids/S.limit*100)+'%';
+    $('flBarWrap').classList.toggle('over',S.fluids>=S.limit);
+    $('flWarn').hidden=S.fluids<S.limit;
+    $('flUndo').hidden=!S.fluidLog.length;
+  }
+  document.querySelectorAll('[data-add]').forEach(function(b){
+    b.onclick=function(){ var v=+b.dataset.add; S.fluids+=v; S.fluidLog.push(v); renderFluids(); };
+  });
+  $('flUndo').onclick=function(){ var v=S.fluidLog.pop(); if(v){ S.fluids-=v; renderFluids(); } };
+  $('flSave').onclick=function(){
+    if(S.fluids>=S.limit && !S.alerts.some(function(a){return a.fluid})){ addAlert('info','Llegaste al límite de líquidos que fijó tu doctor para hoy.'); S.alerts[0].fluid=true; }
+    S.fluidLog=[]; $('meal').value=''; go('home'); toast('Líquidos guardados');
+  };
+
+  /* ---------- síntomas ---------- */
+  $('symChips').addEventListener('click',function(e){
+    var b=e.target.closest('.chip'); if(!b) return;
+    b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')!=='true');
+  });
+  $('symSave').onclick=function(){
+    var sel=[].slice.call(document.querySelectorAll('#symChips .chip[aria-pressed="true"]'));
+    if(!sel.length){ toast('Marca al menos un síntoma'); return; }
+    var alarm=sel.filter(function(b){return b.dataset.alarm});
+    var names=sel.map(function(b){return b.textContent.toLowerCase()});
+    sel.forEach(function(b){ b.setAttribute('aria-pressed','false'); }); $('symNote').value='';
+    if(alarm.length){
+      var t='Registraste '+alarm.map(function(b){return b.textContent.toLowerCase()}).join(', ')+'. Contacta a tu equipo ahora.';
+      addAlert('urg',t); go('home'); urgent('Registraste '+alarm.map(function(b){return b.textContent.toLowerCase()}).join(', ')+'. Llama a tu equipo de salud ahora.');
+    } else { addAlert('info','Registraste: '+names.join(', ')+'. Tu equipo lo verá en tu próxima revisión.'); go('home'); toast('Síntomas guardados'); }
+  };
+
+  /* ---------- alertas ---------- */
+  var sevLabel={urg:'Urgente',att:'Atención',info:'Informativa'};
+  $('filters').addEventListener('click',function(e){
+    var b=e.target.closest('.chip'); if(!b) return;
+    S.filter=b.dataset.f;
+    this.querySelectorAll('.chip').forEach(function(c){ c.setAttribute('aria-pressed',c===b); });
+    renderAlerts();
+  });
+  function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+  function renderAlerts(){
+    var list=S.alerts.filter(function(a){ return S.filter==='all'||a.sev===S.filter; });
+    if(!list.length){ $('alertList').innerHTML='<div class="card empty">No hay alertas en este filtro.</div>'; return; }
+    $('alertList').innerHTML=list.map(function(a){
+      var cls='card'+(a.sev==='urg'&&!a.read?' urgent':'')+(a.read?' sub':'');
+      var pill= a.sev==='urg' ? '<span class="pill urg"><span data-i="warn" data-s="14"></span>Urgente</span>' : '<span class="pill '+a.sev+'">'+sevLabel[a.sev]+'</span>';
+      var actions='';
+      if(a.sev==='urg' && !a.read) actions+='<button class="btn danger block" data-call style="height:52px;font-size:16px"><span data-i="phone" data-s="20"></span>Llamar a mi equipo</button>';
+      if(!a.read) actions+='<button class="link" data-read="'+a.id+'" style="align-self:flex-start">Marcar como leída</button>';
+      return '<div class="'+cls+'"><div class="between">'+pill+'<span class="muted" style="font-size:13px">'+(a.read?'Leída · ':'')+esc(a.time)+'</span></div>'+
+        '<span style="font-size:'+(a.sev==='urg'?17:16)+'px;font-weight:'+(a.sev==='urg'?700:600)+';line-height:1.4'+(a.read?';color:var(--muted)':'')+'">'+esc(a.text)+'</span>'+actions+'</div>';
+    }).join('');
+    paintIcons($('alertList'));
+  }
+  $('alertList').addEventListener('click',function(e){
+    var r=e.target.closest('[data-read]'); if(!r) return;
+    var a=S.alerts.find(function(x){return String(x.id)===r.dataset.read}); if(a){ a.read=true; updateBadges(); renderAlerts(); }
+  });
+
+  /* ---------- tamaño de letra ---------- */
+  var fs=16;
+  function setFs(v){ fs=Math.max(15,Math.min(20,v)); $('phone').style.fontSize=fs+'px'; document.querySelectorAll('.screen').forEach(function(s){ s.style.zoom = fs/16; }); toast('Tamaño de letra: '+(fs===16?'normal':fs>16?'más grande':'más pequeño')); }
+  $('fsUp').onclick=function(){ setFs(fs+1); };
+  $('fsDown').onclick=function(){ setFs(fs-1); };
+
+  updateBadges();
+})();
+</script>
+
+</body></html>
