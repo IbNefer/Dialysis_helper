@@ -1,37 +1,41 @@
-# Secretos y configuracion local
+
+# Variables de entorno y secretos
 .env
-*.env
+.env.*
 !.env.example
 
 # Python
 __pycache__/
-*.pyc
-.venv/
+*.py[cod]
+*.pyo
+*.pyd
 venv/
-.pytest_cache/
-.ruff_cache/
-db.sqlite3
-staticfiles/
+.venv/
+env/
 
-# Node (web y mobile)
+# Django
+staticfiles/
+media/
+*.log
+
+# Bases de datos y backups
+*.sqlite3
+*.sql
+*.dump
+*.backup
+
+# Node.js
 node_modules/
 dist/
 build/
 .expo/
-.expo-shared/
-*.log
 
-# Moviles
-*.apk
-*.aab
-*.ipa
-ios/Pods/
-android/.gradle/
-android/app/build/
-
-# Editores y sistema
+# IDE y sistema operativo
+.vscode/
 .idea/
-.vscode/*
-!.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# Archivos temporales
+*.tmp
+*.bak
